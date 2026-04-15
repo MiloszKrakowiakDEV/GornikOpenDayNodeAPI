@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        a:any-link{
+            color: #0E4A5E;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #0E4A5E;
+            padding: 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+        .icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 40px;
+            text-align: center;
+            color: #333333;
+        }
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 30px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #0E4A5E;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .footer {
+            background-color: #f9f9f9;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #777777;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="https://i.imgur.com/THnYJJb.gif" class="icon">
+            <h2>GórnikOpen</h2>
+        </div>
+        <div class="content">
+            <h1>Weryfikacja konta</h1>
+            <p>Dziękujemy za rejestrację w serwisie GórnikOpen. Aby aktywować swoje konto i uzyskać pełny dostęp, kliknij w poniższy przycisk.</p>
+            <a href="{{verification_link}}" class="btn">Zweryfikuj konto</a>
+            <p style="margin-top: 30px; font-size: 14px; color: #999;">Jeśli przycisk nie działa, skopiuj i wklej poniższy link do przeglądarki:<br>
+            <span style="color: #007bff;">{{verification_link}}</span></p>
+        </div>
+        <div class="footer">
+            &copy; 2026 GÓRNIK – Zespół Szkół im. ks. S. Staszica w Tarnobrzegu.<br/>
+            Kontakt <a href="mailto:gornik@oswiata.tarnobrzeg.pl">gornik@oswiata.tarnobrzeg.pl</a><br/>
+            Wiadomość wygenerowana automatycznie, prosimy na nią nie odpowiadać.
+        </div>
+    </div>
+</body>
+</html>
