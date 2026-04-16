@@ -318,7 +318,7 @@ const server = http.createServer(async (req, res) => {
                     try {
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT u.email, u.points, sum(uqa.time_spent) as 'time_spent' FROM users u
+                            `SELECT u.email, u.points, sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
 INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
 GROUP BY u.email, u.points, uqa.correct 
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
