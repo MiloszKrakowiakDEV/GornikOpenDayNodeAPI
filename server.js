@@ -336,6 +336,49 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
                 });
 
                 break;
+            case "/user/getUserPosition":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `SELECT u.email, u.points, sum(uqa.time_spent) as total_time_spent FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+GROUP BY u.email, u.points, uqa.correct 
+having u.email=?
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
+                            [data.email]
+                        );
+                        if (rows.length === 0) {
+                            throw new Error("Nieprawidłowe dane logowania");;
+                        } else {
+                            const [val] = await connection.execute(
+                                `select count(*) + 1 as "message" from (SELECT u.email, u.points, sum(uqa.time_spent) FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+GROUP BY u.email, u.points, uqa.correct 
+HAVING (points > ? OR (points = ? AND sum(uqa.time_spent) < ?)) AND email <> ?
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table""`,
+                                [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
+                            );
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(val[0]));
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+                break;
         }
     } else if (req.method === "GET") {
         const fullUrl = new URL(req.url, `http://${req.headers.host}`);
