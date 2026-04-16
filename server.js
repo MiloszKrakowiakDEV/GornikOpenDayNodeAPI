@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const {google} = require('googleapis');
+const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const SALT_ROUNDS = 10;
 const emailTemplate = fs.readFileSync(path.join(__dirname, 'email.html'), 'utf8');
@@ -28,8 +28,8 @@ async function sendMail(email, user_token) {
         'https://developers.google.com/oauthplayground'
     );
 
-    oAuth2Client.setCredentials({refresh_token: process.env.OAUTH_REFRESH});
-    const gmail = google.gmail({version: 'v1', auth: oAuth2Client});
+    oAuth2Client.setCredentials({ refresh_token: process.env.OAUTH_REFRESH });
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
     const verificationUrl = `https://gornikopendaynodeapi.onrender.com/email/verify?token=${user_token}`;
     const finalHtml = emailTemplate.replace(/{{verification_link}}/g, verificationUrl);
@@ -87,8 +87,8 @@ const server = http.createServer(async (req, res) => {
                         const data = JSON.parse(body);
                         connection = await pool.getConnection()
                         if (!data.email || !data.password) {
-                            res.writeHead(400, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify({error: "Brak adresu email lub hasła"}));
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            return res.end(JSON.stringify({ error: "Brak adresu email lub hasła" }));
                         }
 
                         const hashedPassword = await bcrypt.hash(data.password, SALT_ROUNDS);
@@ -106,29 +106,29 @@ const server = http.createServer(async (req, res) => {
                         console.log("Email: " + data.email)
                         await sendMail(data.email, token)
 
-                        res.writeHead(201, {'Content-Type': 'application/json'});
-                        res.end(JSON.stringify({message: "Sprawdź pocztę email"}));
+                        res.writeHead(201, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ message: "Sprawdź pocztę email" }));
 
                     } catch (err) {
                         console.error(err);
 
                         if (err.code === "ER_DUP_ENTRY") {
-                            res.writeHead(409, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify({error: "Użytkownik już istnieje"}));
+                            res.writeHead(409, { 'Content-Type': 'application/json' });
+                            return res.end(JSON.stringify({ error: "Użytkownik już istnieje" }));
                         }
 
                         if (err.code === "ER_BAD_NULL_ERROR") {
-                            res.writeHead(400, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify({error: "Brak wymaganych danych"}));
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            return res.end(JSON.stringify({ error: "Brak wymaganych danych" }));
                         }
 
                         if (err instanceof SyntaxError) {
-                            res.writeHead(400, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify({error: "Niepoprawny JSON"}));
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            return res.end(JSON.stringify({ error: "Niepoprawny JSON" }));
                         }
 
-                        res.writeHead(500, {'Content-Type': 'application/json'});
-                        res.end(JSON.stringify({error: "Błąd serwera"}));
+                        res.writeHead(500, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: "Błąd serwera" }));
                     } finally {
                         if (connection) connection.release();
                     }
@@ -149,8 +149,8 @@ const server = http.createServer(async (req, res) => {
                         const data = JSON.parse(body);
 
                         if (!data.email || !data.password) {
-                            res.writeHead(400, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify({error: "Brak nazwy użytkownika lub hasła"}));
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            return res.end(JSON.stringify({ error: "Brak nazwy użytkownika lub hasła" }));
                         }
 
                         connection = await pool.getConnection();
@@ -176,7 +176,7 @@ const server = http.createServer(async (req, res) => {
                                     [data.email]
                                 );
                                 console.log(rows[0])
-                                res.writeHead(201, {'Content-Type': 'application/json'});
+                                res.writeHead(201, { 'Content-Type': 'application/json' });
                                 const user = rows[0];
                                 console.log(JSON.stringify(user))
                                 res.end(JSON.stringify(user));
@@ -190,8 +190,8 @@ const server = http.createServer(async (req, res) => {
 
                     } catch (err) {
                         console.error(err)
-                        res.writeHead(401, {'Content-Type': 'application/json'});
-                        res.end(JSON.stringify({error: err.message}));
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
                     } finally {
                         if (connection) connection.release();
                     }
@@ -211,8 +211,8 @@ const server = http.createServer(async (req, res) => {
                         const data = JSON.parse(body);
 
                         if (!data.username) {
-                            res.writeHead(400, {'Content-Type': 'application/json'});
-                            return res.end(JSON.stringify({error: "Użytkownik nie istnieje"}));
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
+                            return res.end(JSON.stringify({ error: "Użytkownik nie istnieje" }));
                         }
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
@@ -235,16 +235,16 @@ const server = http.createServer(async (req, res) => {
                                 'DELETE FROM users WHERE id = ?',
                                 [selectedUser.id]
                             )
-                            res.writeHead(201, {'Content-Type': 'application/json'});
-                            res.end(JSON.stringify({message: "Konto zostało usunięte"}));
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({ message: "Konto zostało usunięte" }));
 
                         }
 
 
                     } catch (err) {
                         console.error(err)
-                        res.writeHead(401, {'Content-Type': 'application/json'});
-                        res.end(JSON.stringify({error: err.message}));
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
                     } finally {
                         if (connection) connection.release();
                     }
@@ -264,7 +264,7 @@ const server = http.createServer(async (req, res) => {
                         const data = JSON.parse(body);
 
                         if (!data.username || !data.oldPassword || !data.newPassword) {
-                            res.writeHead(400, {'Content-Type': 'application/json'});
+                            res.writeHead(400, { 'Content-Type': 'application/json' });
                             throw new Error("Brak nazwy użytkownika, hasła lub nowego hasła");
                         }
                         connection = await pool.getConnection();
@@ -286,8 +286,8 @@ const server = http.createServer(async (req, res) => {
                                     'UPDATE users SET password = ? WHERE id = ?',
                                     [new_password, rows[0].id]
                                 )
-                                res.writeHead(201, {'Content-Type': 'application/json'});
-                                res.end(JSON.stringify({message: "Poprawnie zmieniono hasło"}));
+                                res.writeHead(201, { 'Content-Type': 'application/json' });
+                                res.end(JSON.stringify({ message: "Poprawnie zmieniono hasło" }));
                             } else {
                                 throw new Error("Nieprawidłowe dane logowania");
                                 ;
@@ -297,8 +297,39 @@ const server = http.createServer(async (req, res) => {
 
                     } catch (err) {
                         console.error(err)
-                        res.writeHead(401, {'Content-Type': 'application/json'});
-                        res.end(JSON.stringify({error: err.message}));
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+
+                break;
+            case "/score/getTopTenUsers":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+
+                    try {
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `SELECT u.email, u.points, sum(uqa.time_spent) as 'time_spent' FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+GROUP BY u.email, u.points, uqa.correct 
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
+                        );
+                        res.writeHead(201, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify(rows));
+
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
                     } finally {
                         if (connection) connection.release();
                     }
@@ -315,7 +346,7 @@ const server = http.createServer(async (req, res) => {
                     const token = fullUrl.searchParams.get('token');
 
                     if (!token) {
-                        res.writeHead(400, {'Content-Type': 'text/plain; charset=utf-8'});
+                        res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
                         return res.end('Błąd: Brak tokenu.');
                     }
                     connection = await pool.getConnection();
@@ -332,7 +363,7 @@ const server = http.createServer(async (req, res) => {
                                 res.writeHead(500);
                                 res.end('Error loading page');
                             } else {
-                                res.writeHead(200, {'Content-Type': 'text/html; charset=utf-8'});
+                                res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
                                 res.end(content);
                             }
 
@@ -349,8 +380,8 @@ const server = http.createServer(async (req, res) => {
                 break;
         }
     } else {
-        res.writeHead(404, {'Content-Type': 'application/json'});
-        res.end(JSON.stringify({error: "Nie znaleziono endpointu"}));
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: "Nie znaleziono endpointu" }));
     }
 });
 
