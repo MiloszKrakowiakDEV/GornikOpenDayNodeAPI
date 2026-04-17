@@ -356,8 +356,7 @@ having u.email=?
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
                             [data.email]
                         );
-                        console.log("Parsed json "+data)
-                        console.log("Email "+data.email.email)
+                        console.log("Email "+data.email)
                         console.log("Rows "+rows[0])
                         if (rows.length === 0) {
                             throw new Error("Nieprawidłowe dane logowania");;
@@ -368,7 +367,7 @@ INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
 GROUP BY u.email, u.points, uqa.correct 
 HAVING (points > ? OR (points = ? AND sum(uqa.time_spent) < ?)) AND email <> ?
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table""`,
-                                [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email.email]
+                                [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
                             res.end(JSON.stringify(val[0]));
