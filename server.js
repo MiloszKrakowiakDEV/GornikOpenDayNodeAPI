@@ -366,7 +366,7 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
 INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
 GROUP BY u.email, u.points, uqa.correct 
 HAVING (points > ? OR (points = ? AND sum(uqa.time_spent) < ?)) AND email <> ?
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table""`,
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`,
                                 [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
