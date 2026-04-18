@@ -392,10 +392,9 @@ having u.email=?
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
                             [data.email]
                         );
-                        console.log("Email " + data.email)
-                        console.log("Rows " + rows[0])
                         if (rows.length === 0) {
-                            throw new Error("Nieprawidłowe dane logowania");;
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({ message: "0" }));
                         } else {
                             const [val] = await connection.execute(
                                 `select count(*) + 1 as "message" from (SELECT u.email, u.points, sum(uqa.time_spent) FROM users u
@@ -443,7 +442,8 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
                             [data.subject, data.email, data.subject]
                         );
                         if (rows.length === 0) {
-                            throw new Error("Nieprawidłowe dane logowania");;
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({ message: "0" }));
                         } else {
                             const [val] = await connection.execute(
                                 `select count(*) + 1 as "message" from (
