@@ -389,18 +389,16 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
                             res.end(JSON.stringify({ message: "0" }));
                         } else {
                             const [val] = await connection.execute(
-                                `select count(*) + 1 as "message" from (
-SELECT u.email, u.points, total_time_spent FROM users u
+                                `select count(*) + 1 as "message" from (SELECT u.email, u.points, total_time_spent FROM users u
 WHERE (points > ? OR (points = ? AND total_time_spent < ?)) AND email <> ?
-ORDER BY u.points DESC, total_time_spent ASC, u.email ASC
-) as "Merged Table"`,
+ORDER BY u.points DESC, total_time_spent ASC, u.email ASC) as "Merged Table"`,
                                 [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
                             if (val.length === 0) {
                                 res.end(JSON.stringify({ message: "0" }));
                             } else {
-                                res.end(JSON.stringify(rows[0]));
+                                res.end(JSON.stringify(val[0]));
                             }
                         }
                     } catch (err) {
