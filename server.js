@@ -504,10 +504,8 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT sum(uqa.time_spent)+0 as "message" FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
-GROUP BY u.email, u.points, uqa.correct 
-having u.email=?`,
+                            `SELECT total_time_spent as "message" FROM users u
+WHERE u.email=?`,
                             [data.email]
                         );
                         res.writeHead(201, { 'Content-Type': 'application/json' });
