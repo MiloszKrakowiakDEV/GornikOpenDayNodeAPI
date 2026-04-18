@@ -448,9 +448,8 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC
                             if (val.length === 0) {
                                 res.end(JSON.stringify({ message: "0" }));
                             } else {
-                                res.end(JSON.stringify(rows[0]));
+                                res.end(JSON.stringify(val[0]));
                             }
-                            res.end(JSON.stringify(val[0]));
                         }
                     } catch (err) {
                         console.error(err)
