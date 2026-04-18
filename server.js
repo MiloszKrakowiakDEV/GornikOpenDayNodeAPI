@@ -557,7 +557,7 @@ having u.email=?`,
                     const isTokenValid = !(rows.length === 0);
 
                     if (isTokenValid) {
-                        const [] = await connection.execute('update users set verified = true, verification_token = null where id = ?',
+                        const [] = await connection.execute('update users set verified = true, verification_token = null, token_created_at = null where id = ?',
                             [rows[0].id])
                         const successPage = path.join(__dirname, 'verified.html');
                         fs.readFile(successPage, (err, content) => {
