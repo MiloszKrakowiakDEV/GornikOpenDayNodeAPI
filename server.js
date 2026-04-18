@@ -569,70 +569,70 @@ WHERE u.email=?`,
                 music_file = fs.readFileSync(path.join(__dirname, "music/furelise.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/drums.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/drums.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/wonderful_world.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/wonderful_world.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/smooth_criminal.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/smooth_criminal.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/caprice_24.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/caprice_24.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/oczy_zielone.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/oczy_zielone.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/bohemian_rhapsody.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/bohemian_rhapsody.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/stairway_to_heaven.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/stairway_to_heaven.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/imperial_march.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/imperial_march.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
             case "/music/grand_march.mp3":
                 music_file = fs.readFileSync(path.join(__dirname, "music/grand_march.mp3"))
                 try {
                     res.writeHead(200, { 'Content-Type': "audio/mpeg" });
-                    res.end(musicFile);
+                    res.end(music_file);
                 } catch (err) { }
                 break;
 
