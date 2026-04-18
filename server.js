@@ -264,7 +264,6 @@ const server = http.createServer(async (req, res) => {
                         const data = JSON.parse(body);
 
                         if (!data.email || !data.oldPassword || !data.newPassword) {
-                            res.writeHead(400, { 'Content-Type': 'application/json' });
                             throw new Error("Brak nazwy użytkownika, hasła lub nowego hasła");
                         }
                         connection = await pool.getConnection();
