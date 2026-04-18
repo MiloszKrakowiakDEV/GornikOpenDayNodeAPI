@@ -565,6 +565,13 @@ WHERE u.email=?`,
                 }
 
                 break;
+            case "/music.mp3":
+                const musicFile = fs.readFileSync(path.join(__dirname,"music.mp3"))
+                try {
+                    res.writeHead(200,{'Content-Type':"audio/mpeg"});
+                    res.end(musicFile);
+                } catch (err) {} 
+                break;
         }
     } else {
         res.writeHead(404, { 'Content-Type': 'application/json' });
