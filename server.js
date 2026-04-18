@@ -290,7 +290,6 @@ const server = http.createServer(async (req, res) => {
                                 res.end(JSON.stringify({ message: "Poprawnie zmieniono hasło" }));
                             } else {
                                 throw new Error("Nieprawidłowe dane logowania");
-                                ;
                             }
 
                         }
