@@ -318,7 +318,7 @@ const server = http.createServer(async (req, res) => {
                     try {
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl'), u.points, sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
+                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points, sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
 INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
 GROUP BY u.email, u.points, uqa.correct 
 HAVING uqa.correct = true
