@@ -316,11 +316,8 @@ const server = http.createServer(async (req, res) => {
                     try {
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points, sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
-GROUP BY u.email, u.points, uqa.correct 
-HAVING uqa.correct = true
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
+                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points, total_time_spent as 'timeSpentTotal' FROM users u
+ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC LIMIT 10`
                         );
                         res.writeHead(201, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify(rows));
@@ -349,13 +346,12 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points-(select sum(points_awarded) from questions where questions.subject <> ? limit 1) as "points", sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points, total_time_spent as 'timeSpentTotal' FROM users u
+INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-GROUP BY u.email, u.points, uqa.correct, q.subject 
-HAVING uqa.correct = true AND q.subject = ?
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`,
-                            [data.subject, data.subject]
+WHERE q.subject = 'j. polski'
+ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC LIMIT 10`,
+                            [data.subject]
                         );
                         res.writeHead(201, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify(rows));
@@ -383,11 +379,9 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`,
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT u.email, u.points, sum(uqa.time_spent) as total_time_spent FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
-GROUP BY u.email, u.points, uqa.correct 
-having u.email=?
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
+                            `SELECT u.email, u.points, total_time_spent FROM users u
+WHERE u.email=?
+ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
                             [data.email]
                         );
                         if (rows.length === 0) {
@@ -395,11 +389,11 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
                             res.end(JSON.stringify({ message: "0" }));
                         } else {
                             const [val] = await connection.execute(
-                                `select count(*) + 1 as "message" from (SELECT u.email, u.points, sum(uqa.time_spent) FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
-GROUP BY u.email, u.points, uqa.correct 
-HAVING (points > ? OR (points = ? AND sum(uqa.time_spent) < ?)) AND email <> ?
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`,
+                                `select count(*) + 1 as "message" from (
+SELECT u.email, u.points, total_time_spent FROM users u
+WHERE (points > ? OR (points = ? AND total_time_spent < ?)) AND email <> ?
+ORDER BY u.points DESC, total_time_spent ASC, u.email ASC
+) as "Merged Table"`,
                                 [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -431,13 +425,12 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT u.email, u.points-(select sum(points_awarded) from questions where questions.subject <> ? limit 1) as "points", sum(uqa.time_spent) as total_time_spent FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+                            `SELECT u.email, u.points, total_time_spent FROM users u
+INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-GROUP BY u.email, u.points, uqa.correct, q.subject
-having u.email=? AND uqa.correct=true AND q.subject  = ?
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
-                            [data.subject, data.email, data.subject]
+WHERE u.email=? AND q.subject = ?
+ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
+                            [data.email, data.subject]
                         );
                         if (rows.length === 0) {
                             res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -445,14 +438,13 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
                         } else {
                             const [val] = await connection.execute(
                                 `select count(*) + 1 as "message" from (
-SELECT u.email, u.points-(select sum(points_awarded) from questions where questions.subject <> ? limit 1) as "points", sum(uqa.time_spent) as total_time_spent FROM users u
-INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+SELECT u.email, u.points, total_time_spent FROM users u
+INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-GROUP BY u.email, u.points, uqa.correct, q.subject
-having u.email<>? AND (points > ? OR (points = ? AND sum(uqa.time_spent) < ?))
-ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC 
+WHERE (points > ? OR (points = ? AND total_time_spent < ?)) AND email <> ?
+ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC 
 ) as "Merged Table"`,
-                                [data.subject, data.email, rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
+                                [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
                             if (val.length === 0) {
