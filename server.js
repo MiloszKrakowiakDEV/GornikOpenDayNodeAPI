@@ -321,6 +321,7 @@ const server = http.createServer(async (req, res) => {
                             `SELECT u.email, u.points, sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
 INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
 GROUP BY u.email, u.points, uqa.correct 
+HAVING uqa.correct = true
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
                         );
                         res.writeHead(201, { 'Content-Type': 'application/json' });
