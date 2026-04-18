@@ -337,6 +337,41 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
                 });
 
                 break;
+            case "/score/getTopTenUsersForSubject":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points-(select sum(points_awarded) from questions where questions.subject <> ? limit 1) as "points", sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+INNER JOIN questions q ON q.id = uqa.question_id 
+GROUP BY u.email, u.points, uqa.correct, q.subject 
+HAVING uqa.correct = true AND q.subject = ?
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`,
+                            [data.subject, data.subject]
+                        );
+                        res.writeHead(201, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify(rows));
+
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+
+                break;
             case "/user/getPosition":
                 body = "";
 
