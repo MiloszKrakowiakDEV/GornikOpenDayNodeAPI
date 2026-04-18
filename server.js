@@ -412,6 +412,40 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`
                     }
                 });
                 break;
+            case "/user/getTotalTime":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `SELECT sum(uqa.time_spent) as "message" FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+GROUP BY u.email, u.points, uqa.correct 
+having u.email=?`,
+                            [data.email]
+                        );
+                        if (rows.length === 0) {
+                            throw new Error("Nieprawidłowe dane logowania");;
+                        } else {
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(rows[0]));
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+                break;
         }
     } else if (req.method === "GET") {
         const fullUrl = new URL(req.url, `http://${req.headers.host}`);
