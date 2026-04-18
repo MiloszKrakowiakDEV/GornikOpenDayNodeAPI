@@ -417,6 +417,53 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`
                     }
                 });
                 break;
+            case "/user/getPositionForSubject":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `SELECT u.email, u.points-(select sum(points_awarded) from questions where questions.subject <> ? limit 1) as "points", sum(uqa.time_spent) as total_time_spent FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+INNER JOIN questions q ON q.id = uqa.question_id 
+GROUP BY u.email, u.points, uqa.correct, q.subject
+having u.email=? AND uqa.correct=true AND q.subject  = ?
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
+                            [data.subject, data.email, data.subject]
+                        );
+                        if (rows.length === 0) {
+                            throw new Error("Nieprawidłowe dane logowania");;
+                        } else {
+                            const [val] = await connection.execute(
+                                `select count(*) + 1 as "message" from (
+SELECT u.email, u.points-(select sum(points_awarded) from questions where questions.subject <> ? limit 1) as "points", sum(uqa.time_spent) as total_time_spent FROM users u
+INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
+INNER JOIN questions q ON q.id = uqa.question_id 
+GROUP BY u.email, u.points, uqa.correct, q.subject
+having u.email<>? AND (points > ? OR (points = ? AND sum(uqa.time_spent) < ?))
+ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC 
+) as "Merged Table"`,
+                                [data.subject,data.email, rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
+                            );
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(val[0]));
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+                break;
             case "/user/getPoints":
                 body = "";
 
