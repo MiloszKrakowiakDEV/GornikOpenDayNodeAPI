@@ -406,7 +406,11 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`
                                 [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
-                            res.end(JSON.stringify(val[0]));
+                            if (val.length === 0) {
+                                res.end(JSON.stringify({ message: "0" }));
+                            } else {
+                                res.end(JSON.stringify(rows[0]));
+                            }
                         }
                     } catch (err) {
                         console.error(err)
@@ -450,9 +454,14 @@ GROUP BY u.email, u.points, uqa.correct, q.subject
 having u.email<>? AND (points > ? OR (points = ? AND sum(uqa.time_spent) < ?))
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC 
 ) as "Merged Table"`,
-                                [data.subject,data.email, rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
+                                [data.subject, data.email, rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
+                            if (val.length === 0) {
+                                res.end(JSON.stringify({ message: "0" }));
+                            } else {
+                                res.end(JSON.stringify(rows[0]));
+                            }
                             res.end(JSON.stringify(val[0]));
                         }
                     } catch (err) {
@@ -480,10 +489,10 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC
                             `select points as "message" from gornikOpenDay.users where email = ?`,
                             [data.email]
                         );
+                        res.writeHead(201, { 'Content-Type': 'application/json' });
                         if (rows.length === 0) {
-                            throw new Error("Nieprawidłowe dane logowania");;
+                            res.end(JSON.stringify({ message: "0" }));
                         } else {
-                            res.writeHead(201, { 'Content-Type': 'application/json' });
                             res.end(JSON.stringify(rows[0]));
                         }
                     } catch (err) {
@@ -508,16 +517,16 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT sum(uqa.time_spent) as "message" FROM users u
+                            `SELECT sum(uqa.time_spent)+0 as "message" FROM users u
 INNER JOIN user_questions_answered uqa ON u.id = uqa.user_id
 GROUP BY u.email, u.points, uqa.correct 
 having u.email=?`,
                             [data.email]
                         );
+                        res.writeHead(201, { 'Content-Type': 'application/json' });
                         if (rows.length === 0) {
-                            throw new Error("Nieprawidłowe dane logowania");;
+                            res.end(JSON.stringify({ message: "0" }));
                         } else {
-                            res.writeHead(201, { 'Content-Type': 'application/json' });
                             res.end(JSON.stringify(rows[0]));
                         }
                     } catch (err) {
