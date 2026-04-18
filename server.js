@@ -197,7 +197,7 @@ const server = http.createServer(async (req, res) => {
                     }
                 });
                 break;
-            case "/user/deleteUser":
+            case "/user/delete":
                 body = "";
 
                 req.on("data", chunk => {
@@ -218,8 +218,8 @@ const server = http.createServer(async (req, res) => {
                         const [rows] = await connection.execute(
                             `SELECT id
                              FROM users
-                             WHERE username = ?`,
-                            [data.username]
+                             WHERE email = ?`,
+                            [data.email]
                         );
 
                         if (rows.length === 0) {
@@ -263,7 +263,7 @@ const server = http.createServer(async (req, res) => {
                     try {
                         const data = JSON.parse(body);
 
-                        if (!data.username || !data.oldPassword || !data.newPassword) {
+                        if (!data.email || !data.oldPassword || !data.newPassword) {
                             res.writeHead(400, { 'Content-Type': 'application/json' });
                             throw new Error("Brak nazwy użytkownika, hasła lub nowego hasła");
                         }
@@ -271,8 +271,8 @@ const server = http.createServer(async (req, res) => {
                         const [rows] = await connection.execute(
                             `SELECT password, id
                              FROM users
-                             WHERE username = ?`,
-                            [data.username]
+                             WHERE email = ?`,
+                            [data.email]
                         );
 
                         if (rows.length === 0) {
@@ -336,7 +336,7 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC LIMIT 10`
                 });
 
                 break;
-            case "/user/getUserPosition":
+            case "/user/getPosition":
                 body = "";
 
                 req.on("data", chunk => {
@@ -356,8 +356,8 @@ having u.email=?
 ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC `,
                             [data.email]
                         );
-                        console.log("Email "+data.email)
-                        console.log("Rows "+rows[0])
+                        console.log("Email " + data.email)
+                        console.log("Rows " + rows[0])
                         if (rows.length === 0) {
                             throw new Error("Nieprawidłowe dane logowania");;
                         } else {
@@ -371,6 +371,37 @@ ORDER BY u.points DESC, sum(uqa.time_spent) ASC, u.email ASC) as "Merged Table"`
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
                             res.end(JSON.stringify(val[0]));
+                        }
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+                break;
+            case "/user/getPoints":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `select points as "message" from gornikOpenDay.users where email = ?`,
+                            [data.email]
+                        );
+                        if (rows.length === 0) {
+                            throw new Error("Nieprawidłowe dane logowania");;
+                        } else {
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(rows[0]));
                         }
                     } catch (err) {
                         console.error(err)
