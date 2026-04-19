@@ -346,10 +346,11 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC LIMIT 10`
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", u.points, total_time_spent as 'timeSpentTotal' FROM users u
+                            `SELECT CONCAT(SUBSTR(u.email,1,3),'<adres>@poczta.pl') as "email", sum(q.points_awarded ), sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
 INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-WHERE q.subject = 'j. polski'
+GROUP BY u.email, uqa.correct, q.subject 
+HAVING q.subject = ?
 ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC LIMIT 10`,
                             [data.subject]
                         );
