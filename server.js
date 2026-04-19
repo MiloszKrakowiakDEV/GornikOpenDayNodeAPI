@@ -423,10 +423,11 @@ ORDER BY u.points DESC, total_time_spent ASC, u.email ASC) as "Merged Table"`,
                         const data = JSON.parse(body);
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT u.email, u.points, total_time_spent FROM users u
+                            `SELECT u.email, sum(q.points_awarded) as "points", sum(uqa.time_spent) as "total_time_spent" FROM users u
 INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-WHERE u.email=? AND q.subject = ?
+GROUP BY u.email, u.points, uqa.correct, q.subject
+HAVING u.email=? AND q.subject = ? AND uqa.correct = true
 ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
                             [data.email, data.subject]
                         );
@@ -436,13 +437,14 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
                         } else {
                             const [val] = await connection.execute(
                                 `select count(*) + 1 as "message" from (
-SELECT u.email, u.points, total_time_spent FROM users u
+SELECT  u.email, sum(q.points_awarded ), sum(uqa.time_spent) FROM users u
 INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
-INNER JOIN questions q ON q.id = uqa.question_id 
-WHERE (points > ? OR (points = ? AND total_time_spent < ?)) AND email <> ?
+INNER JOIN questions q ON q.id = uqa.question_id
+GROUP BY u.email, u.points, uqa.correct, q.subject
+HAVING (sum(q.points_awarded ) > ? OR (sum(q.points_awarded ) = ? AND sum(uqa.time_spent) < ?)) AND email <> ? AND q.subject = ?
 ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC 
 ) as "Merged Table"`,
-                                [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
+                                [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email, data.subject]
                             );
                             res.writeHead(201, { 'Content-Type': 'application/json' });
                             if (val.length === 0) {
