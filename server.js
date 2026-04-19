@@ -617,6 +617,40 @@ inner join questions q on q.id = qid.id where q.subject = ?`,
                 });
 
                 break;
+            case "/questions/getAllForSubject":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            `select q.id, q.subject, q.content, q.answers, q.points_awarded as pointsAward, q.music_uri as "musicUri", q.image_uri as "imageUri" from questions q where q.subject = ?`,
+                            [data.subject]
+                        );
+                        if (rows.length === 0) {
+                            throw new Error("Nie ma pytań na ten temat")
+                        } else {
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(rows));
+                        }
+
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+
+                break;
         }
     } else if (req.method === "GET") {
         const fullUrl = new URL(req.url, `http://${req.headers.host}`);
