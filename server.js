@@ -540,7 +540,7 @@ WHERE u.email=?`,
                             'select id from users where email = ?',
                             [data.email])
                         const [rows1] = await connection.execute(
-                            'select points_award from questions where id = ?',
+                            'select points_awarded from questions where id = ?',
                             [data.questionId])
 
                         const [] = await connection.execute(
@@ -550,7 +550,7 @@ WHERE u.email=?`,
                         if (data.correct) {
                             const [] = await connection.execute(
                                 'update users set points = points + ?, total_time_spent = total_time_spent + ? where id = ?',
-                                [rows1[0].points_award, data.timeSpent, rows[0].id])
+                                [rows1[0].points_awarded, data.timeSpent, rows[0].id])
                         }
                         if (rows.length === 0) {
                             throw new Error("Użytkownik nie istnieje")
