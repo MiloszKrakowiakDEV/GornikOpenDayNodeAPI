@@ -523,6 +523,100 @@ WHERE u.email=?`,
                     }
                 });
                 break;
+            case "/user/setQuestionAsAnswered":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows] = await connection.execute(
+                            'select id from users where email = ?',
+                            [data.email])
+                        const [rows1] = await connection.execute(
+                            'select points_award from questions where id = ?',
+                            [data.questionId])
+
+                        const [] = await connection.execute(
+                            'insert into user_questions_answered(user_id, question_id,correct,time_spent) values(?,?,?,?)',
+                            [rows[0].id, data.questionId, data.correct, data.timeSpent])
+
+                        if (data.correct) {
+                            const [] = await connection.execute(
+                                'update users set points = points + ?, total_time_spent = total_time_spent + ? where id = ?',
+                                [rows1[0].points_award, data.timeSpent, rows[0].id])
+                        }
+                        if (rows.length === 0) {
+                            throw new Error("Użytkownik nie istnieje")
+                        } else {
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify({ message: "Poprawnie odpowiedziano" }));
+                        }
+
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+
+                break;
+            case "/user/getUnansweredQuestionsForSubject":
+                body = "";
+
+                req.on("data", chunk => {
+                    body += chunk.toString();
+                });
+
+                req.on("end", async () => {
+                    let connection;
+
+                    try {
+                        const data = JSON.parse(body);
+                        connection = await pool.getConnection();
+                        const [rows1] = (await connection.execute(
+                            'select id from users where email = ?',
+                            [data.email])
+                        )
+                        const [rows] = await connection.execute(
+                            `select q.id, q.subject, q.content, q.answers, q.points_awarded as pointsAward, q.music_uri as "musicUri", q.image_uri as "imageUri" from (
+select id from (
+select q.id from questions as q
+union all
+select  q.id
+from questions q left join user_questions_answered uqa on uqa.question_id  = q.id
+inner join users u on u.id = uqa.user_id  where uqa.user_id = ?
+)
+as mt group by mt.id having count(mt.id) = 1
+) as qid 
+inner join questions q on q.id = qid.id where q.subject = ?`,
+                            [rows1[0].id, data.subject]
+                        );
+                        if (rows.length === 0) {
+                            throw new Error("Użytkownik odpowiedział na wszystkie pytania")
+                        } else {
+                            res.writeHead(201, { 'Content-Type': 'application/json' });
+                            res.end(JSON.stringify(rows));
+                        }
+
+                    } catch (err) {
+                        console.error(err)
+                        res.writeHead(401, { 'Content-Type': 'application/json' });
+                        res.end(JSON.stringify({ error: err.message }));
+                    } finally {
+                        if (connection) connection.release();
+                    }
+                });
+
+                break;
         }
     } else if (req.method === "GET") {
         const fullUrl = new URL(req.url, `http://${req.headers.host}`);
