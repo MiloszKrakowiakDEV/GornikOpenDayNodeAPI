@@ -351,7 +351,7 @@ INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id
 INNER JOIN questions q ON q.id = uqa.question_id 
 GROUP BY u.email, uqa.correct, q.subject 
 HAVING q.subject = ? AND uqa.correct = true
-ORDER BY u.points DESC, timeSpentTotal  ASC, u.email ASC LIMIT 10`,
+ORDER BY points DESC, timeSpentTotal  ASC, u.email ASC LIMIT 10`,
                             [data.subject]
                         );
                         res.writeHead(201, { 'Content-Type': 'application/json' });
