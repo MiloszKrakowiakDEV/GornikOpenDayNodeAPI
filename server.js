@@ -829,9 +829,5 @@ inner join questions q on q.id = qid.id where q.subject = ?`,
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
-    sendWinnerEmail('miloszz.krakowiak@gmail.com', 1)
-    sendWinnerEmail('miloszz.krakowiak@gmail.com', 2)
-    sendWinnerEmail('miloszz.krakowiak@gmail.com', 3)
-    sendWinnerEmail('miloszz.krakowiak@gmail.com', 10)
     console.log(`Server running on http://localhost:${PORT}`);
 });
