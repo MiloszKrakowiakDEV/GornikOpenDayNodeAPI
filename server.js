@@ -8,8 +8,13 @@ const path = require('path');
 const { google } = require('googleapis');
 const nodemailer = require('nodemailer');
 const SALT_ROUNDS = 10;
-const emailTemplate = fs.readFileSync(path.join(__dirname, 'email.html'), 'utf8');
+const verificationEmailTemplate = fs.readFileSync(path.join(__dirname, 'email.html'), 'utf8');
+const topFirstTemplate = fs.readFileSync(path.join(__dirname, 'email_first.html'), 'utf8');
+const topSecondTemplate = fs.readFileSync(path.join(__dirname, 'email_second.html'), 'utf8');
+const topThirdTemplate = fs.readFileSync(path.join(__dirname, 'email_third.html'), 'utf8');
+const topTenTemplate = fs.readFileSync(path.join(__dirname, 'email_top_ten.html'), 'utf8');
 let music_file;
+
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -21,7 +26,7 @@ const pool = mysql.createPool({
     queueLimit: 0
 });
 
-async function sendMail(email, user_token) {
+async function sendVerificationEmail(email, user_token) {
     const oAuth2Client = new google.auth.OAuth2(
         process.env.OAUTH_ID,
         process.env.OAUTH_SECRET,
@@ -32,7 +37,7 @@ async function sendMail(email, user_token) {
     const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
 
     const verificationUrl = `https://gornikopendaynodeapi.onrender.com/email/verify?token=${user_token}`;
-    const finalHtml = emailTemplate.replace(/{{verification_link}}/g, verificationUrl);
+    const finalHtml = verificationEmailTemplate.replace(/{{verification_link}}/g, verificationUrl);
 
     const encodeWord = (word) => `=?utf-8?B?${Buffer.from(word).toString('base64')}?=`;
 
@@ -48,6 +53,55 @@ async function sendMail(email, user_token) {
         '',
         finalHtml,
     ];
+
+    const message = messageParts.join('\n');
+
+    const encodedMessage = Buffer.from(message)
+        .toString('base64')
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+
+    try {
+        const res = await gmail.users.messages.send({
+            userId: 'me',
+            requestBody: {
+                raw: encodedMessage,
+            },
+        });
+        console.log('Message sent! ID:', res.data.id);
+    } catch (error) {
+        console.error('API Error:', error.response ? error.response.data : error);
+    }
+}
+
+async function sendWinnerEmail(email, position) {
+    const oAuth2Client = new google.auth.OAuth2(
+        process.env.OAUTH_ID,
+        process.env.OAUTH_SECRET,
+        'https://developers.google.com/oauthplayground'
+    );
+
+    oAuth2Client.setCredentials({ refresh_token: process.env.OAUTH_REFRESH });
+    const gmail = google.gmail({ version: 'v1', auth: oAuth2Client });
+
+    const encodeWord = (word) => `=?utf-8?B?${Buffer.from(word).toString('base64')}?=`;
+
+    const displayName = encodeWord("Zespół Górnik TBG");
+    const subject = encodeWord("Wyniki GórnikOpen");
+
+    switch(position){
+        case 1:
+            const messageParts = [
+        `From: ${displayName} <${process.env.GMAIL_LOGIN}>`,
+        `To: ${email}`,
+        'Content-Type: text/html; charset=utf-8',
+        'MIME-Version: 1.0',
+        `Subject: ${subject}`,
+        '',
+        (position == 1 ? topFirstTemplate : position == 2 ? topSecondTemplate : position == 3 ? topThirdTemplate : topTenTemplate ),
+    ];
+    }
 
     const message = messageParts.join('\n');
 
@@ -104,7 +158,7 @@ const server = http.createServer(async (req, res) => {
                             [data.email, hashedPassword, 0, token]
                         );
                         console.log("Email: " + data.email)
-                        await sendMail(data.email, token)
+                        await sendVerificationEmail(data.email, token)
 
                         res.writeHead(201, { 'Content-Type': 'application/json' });
                         res.end(JSON.stringify({ message: "Sprawdź pocztę email" }));
@@ -777,5 +831,9 @@ inner join questions q on q.id = qid.id where q.subject = ?`,
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
+    sendWinnerEmail('miloszz.krakowiak@gmail.com',1)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com',2)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com',3)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com',10)
     console.log(`Server running on http://localhost:${PORT}`);
 });
