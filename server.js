@@ -90,18 +90,16 @@ async function sendWinnerEmail(email, position) {
     const displayName = encodeWord("Zespół Górnik TBG");
     const subject = encodeWord("Wyniki GórnikOpen");
 
-    switch(position){
-        case 1:
-            const messageParts = [
+    const messageParts = [
         `From: ${displayName} <${process.env.GMAIL_LOGIN}>`,
         `To: ${email}`,
         'Content-Type: text/html; charset=utf-8',
         'MIME-Version: 1.0',
         `Subject: ${subject}`,
         '',
-        (position == 1 ? topFirstTemplate : position == 2 ? topSecondTemplate : position == 3 ? topThirdTemplate : topTenTemplate ),
+        (position == 1 ? topFirstTemplate : position == 2 ? topSecondTemplate : position == 3 ? topThirdTemplate : topTenTemplate),
     ];
-    }
+
 
     const message = messageParts.join('\n');
 
@@ -831,9 +829,9 @@ inner join questions q on q.id = qid.id where q.subject = ?`,
 const PORT = process.env.PORT || 3000;
 
 server.listen(PORT, () => {
-    sendWinnerEmail('miloszz.krakowiak@gmail.com',1)
-    sendWinnerEmail('miloszz.krakowiak@gmail.com',2)
-    sendWinnerEmail('miloszz.krakowiak@gmail.com',3)
-    sendWinnerEmail('miloszz.krakowiak@gmail.com',10)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com', 1)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com', 2)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com', 3)
+    sendWinnerEmail('miloszz.krakowiak@gmail.com', 10)
     console.log(`Server running on http://localhost:${PORT}`);
 });
