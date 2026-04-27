@@ -368,7 +368,7 @@ const server = http.createServer(async (req, res) => {
                     try {
                         connection = await pool.getConnection();
                         const [rows] = await connection.execute(
-                            `SELECT CONCAT(SUBSTR(u.email,1,3),'...@poczta.pl') as "email", u.points, total_time_spent as 'timeSpentTotal' FROM users u
+                            `SELECT CONCAT(SUBSTR(u.email,1,3),'...@poczta.pl') as "email", u.points, total_time_spent as 'timeSpentTotal' FROM users u WHERE u.verified = true
 ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC LIMIT 10`
                         );
                         res.writeHead(201, { 'Content-Type': 'application/json' });
@@ -401,8 +401,8 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC LIMIT 10`
                             `SELECT CONCAT(SUBSTR(u.email,1,3),'...@poczta.pl') as "email", sum(q.points_awarded ) as "points" , sum(uqa.time_spent) as 'timeSpentTotal' FROM users u
 INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-GROUP BY u.email, uqa.correct, q.subject 
-HAVING q.subject = ? AND uqa.correct = true
+GROUP BY u.email, uqa.correct, q.subject, u.verified  
+HAVING q.subject = 'geografia' AND uqa.correct = true AND u.verified = true
 ORDER BY points DESC, timeSpentTotal  ASC, u.email ASC LIMIT 10`,
                             [data.subject]
                         );
@@ -443,7 +443,7 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
                         } else {
                             const [val] = await connection.execute(
                                 `select count(*) + 1 as "message" from (SELECT u.email, u.points, total_time_spent FROM users u
-WHERE (points > ? OR (points = ? AND total_time_spent < ?)) AND email <> ?
+WHERE (points > ? OR (points = ? AND total_time_spent < ?)) AND email <> ? AND u.verified =true
 ORDER BY u.points DESC, total_time_spent ASC, u.email ASC) as "Merged Table"`,
                                 [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email]
                             );
@@ -479,8 +479,8 @@ ORDER BY u.points DESC, total_time_spent ASC, u.email ASC) as "Merged Table"`,
                             `SELECT u.email, sum(q.points_awarded) as "points", sum(uqa.time_spent) as "total_time_spent" FROM users u
 INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id 
-GROUP BY u.email, u.points, uqa.correct, q.subject
-HAVING u.email=? AND q.subject = ? AND uqa.correct = true
+GROUP BY u.email, u.points, uqa.correct, q.subject, u.verified
+HAVING u.email=? AND q.subject = ? AND uqa.correct = true AND u.verified = true
 ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
                             [data.email, data.subject]
                         );
@@ -493,8 +493,8 @@ ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC `,
 SELECT  u.email, sum(q.points_awarded ), sum(uqa.time_spent) FROM users u
 INNER JOIN user_questions_answered uqa ON uqa.user_id = u.id 
 INNER JOIN questions q ON q.id = uqa.question_id
-GROUP BY u.email, u.points, uqa.correct, q.subject
-HAVING (sum(q.points_awarded ) > ? OR (sum(q.points_awarded ) = ? AND sum(uqa.time_spent) < ?)) AND email <> ? AND q.subject = ? AND uqa.correct = true
+GROUP BY u.email, u.points, uqa.correct, q.subject, u.verified
+HAVING (sum(q.points_awarded ) > ? OR (sum(q.points_awarded ) = ? AND sum(uqa.time_spent) < ?)) AND email <> ? AND q.subject = ? AND uqa.correct = true AND u.verified = true
 ORDER BY u.points DESC, total_time_spent  ASC, u.email ASC 
 ) as "Merged Table"`,
                                 [rows[0].points, rows[0].points, rows[0].total_time_spent, data.email, data.subject]
